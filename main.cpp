@@ -1,0 +1,155 @@
+#include "vector"
+#include "iostream"
+using namespace std;
+
+vector<int> row = {2, 2, -2, -2, 1, 1, -1, -1 };
+vector<int> col = {-1, 1, 1, -1, 2, -2, 2, -2 };
+
+vector<vector<int>> StepIterate;// = {{0, 0}};
+vector<int> bufStep; //=  {2, 3};
+
+int N = 5;
+int StepNum = 0;
+
+// hier wird zunächst die Koeffizientendeterminante errechnet, wenn der Wert gleich 0 ist sind die Geraden ohne Schnittpunkt
+int det(vector<int>a, vector<int>b){
+    return a[0] * b[1] - a[1] * b[0];
+}
+
+bool line_intersection(vector<vector<int>> line1, vector<vector<int>> line2){
+    //die ganze Upper/Lower geschichte wird gebraucht um den Ort des Schnittpunkts einzudämmen auf den Bereich der Geraden.
+    //Aufgrund der unendlichen Längen der Geraden würde man sonst Schnittpunkte erhalten die garnicht mehr jucken
+    int upperX = line1[1][0] > line1[0][0] ? line1[1][0] : line1[0][0];
+    int lowerX = line1[1][0] < line1[0][0] ? line1[1][0] : line1[0][0];
+    int upperY = line1[1][1] > line1[0][1] ? line1[1][1] : line1[0][1];
+    int lowerY = line1[1][1] < line1[0][1] ? line1[1][1] : line1[0][1];
+
+    int upperXl2 = line2[1][0] > line2[0][0] ? line2[1][0] : line2[0][0];
+    int lowerXl2 = line2[1][0] < line2[0][0] ? line2[1][0] : line2[0][0];
+    int upperYl2 = line2[1][1] > line2[0][1] ? line2[1][1] : line2[0][1];
+    int lowerYl2 = line2[1][1] < line2[0][1] ? line2[1][1] : line2[0][1];
+
+    vector<int> xdiff = {line1[0][0] - line1[1][0], line2[0][0] - line2[1][0]}; //#-2 , 2
+    vector<int> ydiff = {line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]}; //# -1, -1
+
+    // hier wird zunächst die Koeffizientendeterminante errechnet, wenn der Wert gleich 0 ist sind die Geraden ohne Schnittpunkt
+    int  div = det(xdiff, ydiff);
+    if (div == 0)
+        return true;
+
+    // im späteren Verlauf werden nun die Zählerdeterminanten für x und y ausgerechnet und durch die Koeffizientendeterminante geteilt
+    //weiterführendes findet man unter cramersche-regel
+    vector<int> d = {det(line1[0],line1[1]), det(line2[0],line2[1])};
+    auto x = det(d, xdiff) / div;
+    auto y = det(d, ydiff) / div;
+
+    //cout << x << y << endl;
+
+
+    //Falls der ermittelte Schnittpunkt nun außerhalb des x order y Intervalls einer der beiden geraden liegt soll nichts passieren
+    //wichtig und richtig so wie das hier ist, da um ein Schnittpunkt beider gerade zu sein der x und y wert im bereich von beiden geraden sein muss
+    //wenn nur für l 1 geprüft werden würde dann könnte ein falsches positiv entstehen, weil l2 ja sonst unendlich ist und quer über das feld einen punkt
+    //auf l1 treffen kann der dann valide ist aber gar kein schnittpunkt
+    if(x > upperX || x < lowerX || y > upperY || y < lowerY || x > upperXl2 || x < lowerXl2 || y > upperYl2 || y < lowerYl2)
+        return true;
+
+    return false;
+}
+
+
+    //der ganze Bums steuert die Intersection geschichte so ein bisschen. Im Prinzip wird für jeden neuen Punkt den man einsetzten will geprüft,
+    //ob er mit einer der vorherigen Punkte einen Schnittpunkt hat, Als Ausnahme ist noch hinterlegt, dass für den Punkt 0,0 die erste überprüfung nicht gemacht wird,
+    //weil der Schnittpunkt bei 0,0 sonst immer sagen würde, dass es nicht zulässig ist
+    //hier sollte im fertigen Programm noch erarbeitet werden, dass der Punkt sich mit dem Startpunkt ändert und der Schnittpunkt == exakter Startpunkt = kein Schnittpunkt
+bool DoesntIntersect(auto StepIterate, auto bufStep, auto StepNum){
+
+    int CntInters = 0;
+
+    for (int i = 0; i < StepNum-2; ++i) {
+        bool test = line_intersection({StepIterate[i], StepIterate[i + 1]}, {StepIterate[StepNum - 1 ], bufStep });
+
+        if(test == false ){
+            CntInters += 1;
+        }
+
+    }
+    if (CntInters == 0)
+        return true;
+
+    return false;
+}
+
+
+bool isValid(int y, int x, int N, int M = 99){
+    // prüfen ob das Schachfeld quadratisch ist
+    M = M == 99 ? N : M;
+
+    if ((y >= 0) && (y < N) && (x >= 0) && (x < M))
+        return true;
+
+    if (y == 0 && x == 0)
+        return true;
+
+    return false;
+};
+
+
+void Step(vector<int> pos, int StepNum){
+    StepNum += 1;
+    int i = 0;
+
+    StepIterate.push_back(pos);
+
+    if((StepIterate.size() > 1) && (pos[0] == 0) && (pos[1] == 0)){
+
+        for (int k = 0; k < StepIterate.size(); ++k) {
+            cout << StepIterate[k][0] << StepIterate[k][1] << endl;
+        }
+        return;
+    };
+
+
+    while (i < 8){
+        if(StepIterate.size() > StepNum){
+            while(StepIterate.size()> StepNum){
+                StepIterate.pop_back();
+            }
+        }
+
+
+
+    pos = StepIterate[StepNum-1];
+    int NewY = pos[0] + row[i];
+    int NewX = pos[1] + col[i];
+    vector<int> bufStep = {NewY, NewX};
+
+    bool vorhanden = false;
+    for (int j = 0; j < StepIterate.size() ; ++j){
+        bool xTrue = StepIterate[j][0] == bufStep[0] ? true: false;
+        bool yTrue = StepIterate[j][1] == bufStep[1] ? true: false;
+
+        if (xTrue && yTrue){
+
+            vorhanden = bufStep[0] == 0 && bufStep[1] == 0 ? false : true ;
+
+            break;
+        };
+    };
+
+
+    if(isValid(NewY, NewX, N) && vorhanden == false && DoesntIntersect(StepIterate, bufStep, StepNum)){
+        pos = bufStep;
+        Step(pos, StepNum);
+
+    }
+        i += 1;
+    }
+}
+
+
+
+int main() {
+    Step({0,0}, StepNum);
+
+    return 0;
+}
