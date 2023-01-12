@@ -7,7 +7,10 @@ vector<int> col = {-1, 1, 1, -1, 2, -2, 2, -2 };
 
 vector<vector<int>> StepIterate;// = {{0, 0}};
 vector<int> bufStep; //=  {2, 3};
+vector<vector<int>> lPath = {{0, 0}};
+int lStep = 0;
 
+// Feldgröße
 int N = 5;
 int StepNum = 0;
 
@@ -51,6 +54,9 @@ bool line_intersection(vector<vector<int>> line1, vector<vector<int>> line2){
     //wenn nur für l 1 geprüft werden würde dann könnte ein falsches positiv entstehen, weil l2 ja sonst unendlich ist und quer über das feld einen punkt
     //auf l1 treffen kann der dann valide ist aber gar kein schnittpunkt
     if(x > upperX || x < lowerX || y > upperY || y < lowerY || x > upperXl2 || x < lowerXl2 || y > upperYl2 || y < lowerYl2)
+        return true;
+
+    if(x == 0 && y == 0)
         return true;
 
     return false;
@@ -119,9 +125,9 @@ void Step(vector<int> pos, int StepNum){
 
 
     pos = StepIterate[StepNum-1];
-    int NewY = pos[0] + row[i];
-    int NewX = pos[1] + col[i];
-    vector<int> bufStep = {NewY, NewX};
+    int NewY = pos[1] + row[i];
+    int NewX = pos[0] + col[i];
+    vector<int> bufStep = {NewX, NewY};
 
     bool vorhanden = false;
     for (int j = 0; j < StepIterate.size() ; ++j){
@@ -133,15 +139,15 @@ void Step(vector<int> pos, int StepNum){
             vorhanden = bufStep[0] == 0 && bufStep[1] == 0 ? false : true ;
 
             break;
-        };
-    };
+        }
+    }
 
 
     if(isValid(NewY, NewX, N) && vorhanden == false && DoesntIntersect(StepIterate, bufStep, StepNum)){
         pos = bufStep;
         Step(pos, StepNum);
-
     }
+
         i += 1;
     }
 }
