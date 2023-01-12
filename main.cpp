@@ -107,9 +107,9 @@ void Step(vector<int> pos, int StepNum){
     StepIterate.push_back(pos);
 
     if((StepIterate.size() > 1) && (pos[0] == 0) && (pos[1] == 0)){
-
-        for (int k = 0; k < StepIterate.size(); ++k) {
-            cout << StepIterate[k][0] << StepIterate[k][1] << endl;
+        if(lStep < StepIterate.size()){
+            lPath = StepIterate;
+            lStep = StepIterate.size();
         }
         return;
     };
@@ -156,6 +156,11 @@ void Step(vector<int> pos, int StepNum){
 
 int main() {
     Step({0,0}, StepNum);
+
+    cout <<"Der Pfad ist = " << lStep << endl;
+    for (int k = 0; k < lPath.size(); ++k) {
+        cout << lPath[k][0] << lPath[k][1] << endl;
+    }
 
     return 0;
 }
